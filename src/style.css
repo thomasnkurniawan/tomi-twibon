@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.dragging {
+  user-select: none;
+  cursor: grabbing !important;
+}
+
+#twibbon-wrapper {
+  cursor: grab;
+  touch-action: none;
+}
+
+#twibbon-wrapper.dragging {
+  cursor: grabbing;
+}
