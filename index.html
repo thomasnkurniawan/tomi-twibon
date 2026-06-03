@@ -32,15 +32,23 @@
       gtag('config', 'G-XJWYZXNEVP');
     </script>
   </head>
-  <body class="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+  <body class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex flex-col items-center justify-center py-12 px-4">
     <!-- Header -->
-    <header class="text-center mb-8">
-      <h1 class="text-4xl font-bold text-gray-800">Twibbonizer</h1>
-      <p class="text-gray-500 mt-1">Frame your photos</p>
+    <header class="text-center mb-10">
+      <div class="mb-3">
+        <svg class="w-10 h-10 mx-auto text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+        </svg>
+      </div>
+      <h1 class="text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">Twibbonizer</h1>
+      <p class="text-gray-400 mt-2 tracking-wide">Frame your photos</p>
     </header>
 
     <!-- Upload Zone -->
-    <div id="upload-zone" class="border-2 border-dashed border-gray-400 rounded-xl p-12 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors max-w-[480px] w-full mb-4" tabindex="0" role="button" aria-label="Upload your photo">
+    <div id="upload-zone" class="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-16 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/40 transition-all max-w-[480px] w-full mb-4 shadow-sm" tabindex="0" role="button" aria-label="Upload your photo">
+      <svg class="w-12 h-12 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+      </svg>
       <p class="text-lg font-medium text-gray-700">Click or drag your photo here</p>
       <p class="text-sm text-gray-400 mt-1">Supports JPG, PNG, WEBP</p>
       <input type="file" id="photo-input" accept="image/*" class="hidden">
@@ -48,7 +56,7 @@
 
     <!-- Editor Section (hidden initially) -->
     <div id="editor-section" class="hidden w-full max-w-[480px]">
-      <div id="editor-container" class="relative overflow-hidden w-full aspect-square mx-auto rounded-lg shadow-lg bg-gray-100" style="background-size:cover;background-position:center;background-repeat:no-repeat">
+      <div id="editor-container" class="relative overflow-hidden w-full aspect-square mx-auto rounded-2xl shadow-2xl shadow-blue-100/50 bg-gray-100" style="background-size:cover;background-position:center;background-repeat:no-repeat">
         <div id="twibbon-wrapper" style="position:absolute;top:0;left:0;width:100%;height:100%">
           <img id="twibbon-img" style="width:100%;height:100%;display:block;pointer-events:none" draggable="false" alt="Twibbon overlay">
           <!-- Resize Handles -->
@@ -60,19 +68,24 @@
       </div>
 
       <!-- Controls Bar -->
-      <div id="controls" class="flex items-center justify-between mt-4 max-w-[480px] mx-auto w-full px-2">
-        <button id="change-photo-btn" class="text-sm text-gray-600 underline hover:text-gray-900 cursor-pointer">Change photo</button>
-        <span id="twibbon-label" class="text-sm text-gray-600">Using default twibbon</span>
-        <button id="change-twibbon-btn" class="text-sm text-blue-600 underline cursor-pointer">Change twibbon</button>
+      <div id="controls" class="flex items-center justify-between mt-5 max-w-[480px] mx-auto w-full px-1">
+        <button id="change-photo-btn" class="px-3 py-1 rounded-full border border-gray-200 text-xs text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">Change photo</button>
+        <span id="twibbon-label" class="text-xs text-gray-400">Using default twibbon</span>
+        <button id="change-twibbon-btn" class="px-3 py-1 rounded-full border border-gray-200 text-xs text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">Change twibbon</button>
         <input type="file" id="twibbon-input" accept="image/png" class="hidden">
       </div>
 
       <!-- Download Button -->
-      <button id="download-btn" disabled class="mt-4 w-full max-w-[480px] bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors mx-auto block" aria-label="Download your twibbonized photo">Download Image</button>
+      <button id="download-btn" disabled class="mt-5 w-full max-w-[480px] bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-xl font-semibold shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:from-blue-600 disabled:hover:to-indigo-600 transition-all mx-auto block" aria-label="Download your twibbonized photo">
+        <svg class="w-5 h-5 inline-block mr-2 -mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+        </svg>
+        Download Image
+      </button>
     </div>
 
     <!-- Footer -->
-    <footer class="mt-10 text-center text-sm text-gray-400">
+    <footer class="mt-12 text-center text-sm text-gray-400">
       Powered by <a href="https://www.instagram.com/thomasnkurniawan/" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-600 transition-colors">tomisedunia</a>
     </footer>
 
