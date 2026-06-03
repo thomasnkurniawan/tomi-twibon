@@ -298,18 +298,24 @@ downloadBtn.addEventListener('click', async () => {
 
     const editorW = editorContainer.offsetWidth
     const pixelRatio = canvasSize / editorW
+    const tX = state.twibbon.x * pixelRatio
+    const tY = state.twibbon.y * pixelRatio
+    const tW = state.twibbon.width * pixelRatio
+    const tH = state.twibbon.height * pixelRatio
+
     const twibbonData = await loadImage(twibbonImg.src)
-    ctx.drawImage(
-      twibbonData,
-      state.twibbon.x * pixelRatio,
-      state.twibbon.y * pixelRatio,
-      state.twibbon.width * pixelRatio,
-      state.twibbon.height * pixelRatio
-    )
+    ctx.drawImage(twibbonData, tX, tY, tW, tH)
+
+    // Crop to twibbon region
+    const cropCanvas = document.createElement('canvas')
+    cropCanvas.width = tW
+    cropCanvas.height = tH
+    const cropCtx = cropCanvas.getContext('2d')
+    cropCtx.drawImage(canvas, tX, tY, tW, tH, 0, 0, tW, tH)
 
     const link = document.createElement('a')
     link.download = 'twibbonized.png'
-    link.href = canvas.toDataURL('image/png')
+    link.href = cropCanvas.toDataURL('image/png')
     document.body.appendChild(link)
     link.click()
     link.remove()
