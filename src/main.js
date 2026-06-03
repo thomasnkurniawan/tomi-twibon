@@ -1,5 +1,10 @@
 import './style.css'
 
+// ─── Analytics Helper ──────────────────────────────────────────
+function trackEvent(name, params = {}) {
+  if (typeof gtag !== 'undefined') gtag('event', name, params)
+}
+
 // ─── DOM References ────────────────────────────────────────────
 const uploadZone = document.getElementById('upload-zone')
 const photoInput = document.getElementById('photo-input')
@@ -12,6 +17,7 @@ const changeTwibbonBtn = document.getElementById('change-twibbon-btn')
 const twibbonInput = document.getElementById('twibbon-input')
 const downloadBtn = document.getElementById('download-btn')
 const handles = document.querySelectorAll('.resize-handle')
+const changePhotoBtn = document.getElementById('change-photo-btn')
 
 // ─── App State ─────────────────────────────────────────────────
 const state = {
@@ -54,6 +60,18 @@ function applyTwibbonTransform() {
   twibbonWrapper.style.height = state.twibbon.height + 'px'
 }
 
+// ─── Apply Photo ───────────────────────────────────────────────
+function applyPhoto(dataURL, keepTwibbon = false) {
+  state.photoDataURL = dataURL
+  editorContainer.style.backgroundImage = `url(${dataURL})`
+  uploadZone.classList.add('hidden')
+  editorSection.classList.remove('hidden')
+  downloadBtn.disabled = false
+  if (!keepTwibbon) {
+    initTwibbonPosition()
+  }
+}
+
 // ─── Photo Upload (Click) ──────────────────────────────────────
 uploadZone.addEventListener('click', () => photoInput.click())
 
@@ -62,12 +80,8 @@ photoInput.addEventListener('change', (e) => {
   if (!file || !file.type.startsWith('image/')) return
   const reader = new FileReader()
   reader.onload = () => {
-    state.photoDataURL = reader.result
-    editorContainer.style.backgroundImage = `url(${state.photoDataURL})`
-    uploadZone.classList.add('hidden')
-    editorSection.classList.remove('hidden')
-    downloadBtn.disabled = false
-    initTwibbonPosition()
+    applyPhoto(reader.result, false)
+    trackEvent('photo_uploaded', { method: 'click' })
   }
   reader.readAsDataURL(file)
 })
@@ -89,12 +103,8 @@ uploadZone.addEventListener('drop', (e) => {
   if (!file || !file.type.startsWith('image/')) return
   const reader = new FileReader()
   reader.onload = () => {
-    state.photoDataURL = reader.result
-    editorContainer.style.backgroundImage = `url(${state.photoDataURL})`
-    uploadZone.classList.add('hidden')
-    editorSection.classList.remove('hidden')
-    downloadBtn.disabled = false
-    initTwibbonPosition()
+    applyPhoto(reader.result, false)
+    trackEvent('photo_uploaded', { method: 'drag_drop' })
   }
   reader.readAsDataURL(file)
 })
@@ -105,6 +115,47 @@ uploadZone.addEventListener('keydown', (e) => {
     e.preventDefault()
     photoInput.click()
   }
+})
+
+// ─── Change Photo Button ───────────────────────────────────────
+changePhotoBtn.addEventListener('click', () => {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = 'image/*'
+  input.addEventListener('change', (e) => {
+    const file = e.target.files[0]
+    if (!file || !file.type.startsWith('image/')) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      applyPhoto(reader.result, true)
+      trackEvent('photo_changed', { method: 'click' })
+    }
+    reader.readAsDataURL(file)
+  })
+  input.click()
+})
+
+// ─── Drag & Drop on Editor (re-upload) ────────────────────────
+editorContainer.addEventListener('dragover', (e) => {
+  e.preventDefault()
+  editorContainer.classList.add('ring-2', 'ring-blue-400')
+})
+
+editorContainer.addEventListener('dragleave', () => {
+  editorContainer.classList.remove('ring-2', 'ring-blue-400')
+})
+
+editorContainer.addEventListener('drop', (e) => {
+  e.preventDefault()
+  editorContainer.classList.remove('ring-2', 'ring-blue-400')
+  const file = e.dataTransfer.files[0]
+  if (!file || !file.type.startsWith('image/')) return
+  const reader = new FileReader()
+  reader.onload = () => {
+    applyPhoto(reader.result, true)
+    trackEvent('photo_changed', { method: 'drag_drop' })
+  }
+  reader.readAsDataURL(file)
 })
 
 // ─── Twibbon Default Load & Change ─────────────────────────────
@@ -127,6 +178,7 @@ twibbonInput.addEventListener('change', (e) => {
     twibbonImg.onload = () => {
       state.twibbonAspectRatio = twibbonImg.naturalWidth / twibbonImg.naturalHeight
       twibbonLabel.textContent = 'Using custom twibbon'
+      trackEvent('twibbon_changed')
       initTwibbonPosition()
     }
   }
@@ -261,6 +313,8 @@ downloadBtn.addEventListener('click', async () => {
     document.body.appendChild(link)
     link.click()
     link.remove()
+
+    trackEvent('image_downloaded')
 
     downloadBtn.textContent = 'Download Image'
   } catch (err) {

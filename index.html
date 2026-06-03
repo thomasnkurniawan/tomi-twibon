@@ -3,7 +3,34 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Twibbonizer</title>
+
+    <!-- SEO -->
+    <title>Twibbonizer — Free Online Twibbon Maker</title>
+    <meta name="description" content="Add a twibbon frame to your photo for free. Upload your photo, position the frame, and download in seconds." />
+    <link rel="canonical" href="https://twibbonizer.vercel.app" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://twibbonizer.vercel.app" />
+    <meta property="og:title" content="Twibbonizer — Free Online Twibbon Maker" />
+    <meta property="og:description" content="Add a twibbon frame to your photo for free. Upload your photo, position the frame, and download in seconds." />
+    <meta property="og:image" content="https://twibbonizer.vercel.app/twibbon.png" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Twibbonizer — Free Online Twibbon Maker" />
+    <meta name="twitter:description" content="Add a twibbon frame to your photo for free. Upload your photo, position the frame, and download in seconds." />
+    <meta name="twitter:image" content="https://twibbonizer.vercel.app/twibbon.png" />
+
+    <!-- Google Analytics GA4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XJWYZXNEVP"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XJWYZXNEVP');
+    </script>
   </head>
   <body class="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
     <!-- Header -->
@@ -34,6 +61,7 @@
 
       <!-- Controls Bar -->
       <div id="controls" class="flex items-center justify-between mt-4 max-w-[480px] mx-auto w-full px-2">
+        <button id="change-photo-btn" class="text-sm text-gray-600 underline hover:text-gray-900 cursor-pointer">Change photo</button>
         <span id="twibbon-label" class="text-sm text-gray-600">Using default twibbon</span>
         <button id="change-twibbon-btn" class="text-sm text-blue-600 underline cursor-pointer">Change twibbon</button>
         <input type="file" id="twibbon-input" accept="image/png" class="hidden">
@@ -42,6 +70,11 @@
       <!-- Download Button -->
       <button id="download-btn" disabled class="mt-4 w-full max-w-[480px] bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors mx-auto block" aria-label="Download your twibbonized photo">Download Image</button>
     </div>
+
+    <!-- Footer -->
+    <footer class="mt-10 text-center text-sm text-gray-400">
+      Powered by <a href="https://www.instagram.com/thomasnkurniawan/" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-600 transition-colors">tomisedunia</a>
+    </footer>
 
     <script type="module" src="/src/main.js"></script>
   </body>
