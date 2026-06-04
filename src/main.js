@@ -18,12 +18,14 @@ const twibbonInput = document.getElementById('twibbon-input')
 const downloadBtn = document.getElementById('download-btn')
 const handles = document.querySelectorAll('.resize-handle')
 const changePhotoBtn = document.getElementById('change-photo-btn')
+const shapeControls = document.getElementById('shape-controls')
+const shapeOptions = shapeControls.querySelectorAll('[data-shape]')
 
-// ─── App State ─────────────────────────────────────────────────
 const state = {
   photoDataURL: null,
   twibbonAspectRatio: 1,
   twibbon: { x: 0, y: 0, width: 0, height: 0 },
+  shape: 'rectangle',
   drag: { active: false, startX: 0, startY: 0, startLeft: 0, startTop: 0 },
   resize: { active: false, corner: null, startX: 0, startY: 0, startW: 0, startH: 0, startLeft: 0, startTop: 0 }
 }
@@ -58,6 +60,26 @@ function applyTwibbonTransform() {
   twibbonWrapper.style.top = state.twibbon.y + 'px'
   twibbonWrapper.style.width = state.twibbon.width + 'px'
   twibbonWrapper.style.height = state.twibbon.height + 'px'
+  applyShape()
+}
+
+function getCircleInEditorCoords() {
+  const cx = state.twibbon.x + state.twibbon.width / 2
+  const cy = state.twibbon.y + state.twibbon.height / 2
+  const r = Math.min(state.twibbon.width, state.twibbon.height) / 2
+  return { cx, cy, r }
+}
+
+function applyShape() {
+  if (state.shape === 'circle') {
+    const { cx, cy, r } = getCircleInEditorCoords()
+    editorContainer.style.clipPath = `circle(${r}px at ${cx}px ${cy}px)`
+  } else {
+    editorContainer.style.clipPath = ''
+  }
+  shapeOptions.forEach(btn => {
+    btn.setAttribute('aria-checked', btn.dataset.shape === state.shape ? 'true' : 'false')
+  })
 }
 
 // ─── Apply Photo ───────────────────────────────────────────────
@@ -69,6 +91,8 @@ function applyPhoto(dataURL, keepTwibbon = false) {
   downloadBtn.disabled = false
   if (!keepTwibbon) {
     initTwibbonPosition()
+  } else {
+    applyTwibbonTransform()
   }
 }
 
@@ -185,6 +209,30 @@ twibbonInput.addEventListener('change', (e) => {
   reader.readAsDataURL(file)
 })
 
+shapeControls.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-shape]')
+  if (!btn) return
+  const next = btn.dataset.shape
+  if (next === state.shape) return
+  state.shape = next
+  applyShape()
+  trackEvent('crop_shape_changed', { shape: next })
+})
+
+shapeControls.addEventListener('keydown', (e) => {
+  if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return
+  e.preventDefault()
+  const order = ['circle', 'rectangle']
+  const idx = order.indexOf(state.shape)
+  const dir = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : -1
+  const next = order[(idx + dir + order.length) % order.length]
+  state.shape = next
+  applyShape()
+  const nextBtn = shapeControls.querySelector(`[data-shape="${next}"]`)
+  if (nextBtn) nextBtn.focus()
+  trackEvent('crop_shape_changed', { shape: next, via: 'keyboard' })
+})
+
 // ─── Drag Logic ────────────────────────────────────────────────
 twibbonWrapper.addEventListener('pointerdown', (e) => {
   if (e.target.classList.contains('resize-handle')) return
@@ -280,6 +328,7 @@ downloadBtn.addEventListener('click', async () => {
   downloadBtn.textContent = 'Processing...'
   try {
     const photoImg = await loadImage(state.photoDataURL)
+    const twibbonData = await loadImage(twibbonImg.src)
     const natW = photoImg.naturalWidth
     const natH = photoImg.naturalHeight
     const canvasSize = Math.min(natW, natH)
@@ -303,15 +352,43 @@ downloadBtn.addEventListener('click', async () => {
     const tW = state.twibbon.width * pixelRatio
     const tH = state.twibbon.height * pixelRatio
 
-    const twibbonData = await loadImage(twibbonImg.src)
     ctx.drawImage(twibbonData, tX, tY, tW, tH)
 
-    // Crop to twibbon region
-    const cropCanvas = document.createElement('canvas')
-    cropCanvas.width = tW
-    cropCanvas.height = tH
-    const cropCtx = cropCanvas.getContext('2d')
-    cropCtx.drawImage(canvas, tX, tY, tW, tH, 0, 0, tW, tH)
+    let cropCanvas
+    if (state.shape === 'circle') {
+      const { cx, cy, r } = getCircleInEditorCoords()
+      const radiusPx = r * pixelRatio
+      const centerXCanvas = cx * pixelRatio
+      const centerYCanvas = cy * pixelRatio
+      const size = radiusPx * 2
+      cropCanvas = document.createElement('canvas')
+      cropCanvas.width = size
+      cropCanvas.height = size
+      const cropCtx = cropCanvas.getContext('2d')
+      cropCtx.drawImage(
+        canvas,
+        centerXCanvas - radiusPx,
+        centerYCanvas - radiusPx,
+        size,
+        size,
+        0,
+        0,
+        size,
+        size
+      )
+      cropCtx.save()
+      cropCtx.globalCompositeOperation = 'destination-in'
+      cropCtx.beginPath()
+      cropCtx.arc(radiusPx, radiusPx, radiusPx, 0, Math.PI * 2)
+      cropCtx.fill()
+      cropCtx.restore()
+    } else {
+      cropCanvas = document.createElement('canvas')
+      cropCanvas.width = tW
+      cropCanvas.height = tH
+      const cropCtx = cropCanvas.getContext('2d')
+      cropCtx.drawImage(canvas, tX, tY, tW, tH, 0, 0, tW, tH)
+    }
 
     const link = document.createElement('a')
     link.download = 'twibbonized.png'
@@ -320,7 +397,7 @@ downloadBtn.addEventListener('click', async () => {
     link.click()
     link.remove()
 
-    trackEvent('image_downloaded')
+    trackEvent('image_downloaded', { shape: state.shape })
 
     downloadBtn.textContent = 'Download Image'
   } catch (err) {
