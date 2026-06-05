@@ -25,7 +25,7 @@ const state = {
   photoDataURL: null,
   twibbonAspectRatio: 1,
   twibbon: { x: 0, y: 0, width: 0, height: 0 },
-  shape: 'rectangle',
+  shape: 'circle',
   drag: { active: false, startX: 0, startY: 0, startLeft: 0, startTop: 0 },
   resize: { active: false, corner: null, startX: 0, startY: 0, startW: 0, startH: 0, startLeft: 0, startTop: 0 }
 }
