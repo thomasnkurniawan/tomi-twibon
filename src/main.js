@@ -8,6 +8,7 @@ function trackEvent(name, params = {}) {
 // ─── DOM References ────────────────────────────────────────────
 const uploadZone = document.getElementById('upload-zone')
 const photoInput = document.getElementById('photo-input')
+const uploadError = document.getElementById('upload-error')
 const editorSection = document.getElementById('editor-section')
 const editorContainer = document.getElementById('editor-container')
 const twibbonWrapper = document.getElementById('twibbon-wrapper')
@@ -33,6 +34,20 @@ const state = {
 // ─── Helpers ───────────────────────────────────────────────────
 function clamp(val, min, max) {
   return Math.max(min, Math.min(max, val))
+}
+
+function showUploadError(msg) {
+  uploadError.textContent = msg
+  uploadError.classList.remove('hidden')
+  clearTimeout(showUploadError._t)
+  showUploadError._t = setTimeout(() => uploadError.classList.add('hidden'), 4000)
+}
+
+function validateImageFile(file) {
+  if (!file) return 'No file selected.'
+  if (!file.type.startsWith('image/')) return 'Please upload an image file (JPG, PNG, or WEBP).'
+  if (file.size > 15 * 1024 * 1024) return 'That file is too large. Please use an image under 15 MB.'
+  return null
 }
 
 function loadImage(src) {
@@ -83,7 +98,12 @@ function applyShape() {
 }
 
 // ─── Apply Photo ───────────────────────────────────────────────
-function applyPhoto(dataURL, keepTwibbon = false) {
+async function applyPhoto(dataURL, keepTwibbon = false) {
+  const img = await loadImage(dataURL)
+  if (img.naturalWidth < 400 || img.naturalHeight < 400) {
+    showUploadError('Image is too small. Please use a photo at least 400 × 400 px.')
+    return false
+  }
   state.photoDataURL = dataURL
   editorContainer.style.backgroundImage = `url(${dataURL})`
   uploadZone.classList.add('hidden')
@@ -94,6 +114,7 @@ function applyPhoto(dataURL, keepTwibbon = false) {
   } else {
     applyTwibbonTransform()
   }
+  return true
 }
 
 // ─── Photo Upload (Click) ──────────────────────────────────────
@@ -101,11 +122,12 @@ uploadZone.addEventListener('click', () => photoInput.click())
 
 photoInput.addEventListener('change', (e) => {
   const file = e.target.files[0]
-  if (!file || !file.type.startsWith('image/')) return
+  const err = validateImageFile(file)
+  if (err) { showUploadError(err); e.target.value = ''; return }
   const reader = new FileReader()
-  reader.onload = () => {
-    applyPhoto(reader.result, false)
-    trackEvent('photo_uploaded', { method: 'click' })
+  reader.onload = async () => {
+    const ok = await applyPhoto(reader.result, false)
+    if (ok) trackEvent('photo_uploaded', { method: 'click' })
   }
   reader.readAsDataURL(file)
 })
@@ -124,11 +146,12 @@ uploadZone.addEventListener('drop', (e) => {
   e.preventDefault()
   uploadZone.classList.remove('border-blue-500', 'bg-blue-50')
   const file = e.dataTransfer.files[0]
-  if (!file || !file.type.startsWith('image/')) return
+  const err = validateImageFile(file)
+  if (err) { showUploadError(err); return }
   const reader = new FileReader()
-  reader.onload = () => {
-    applyPhoto(reader.result, false)
-    trackEvent('photo_uploaded', { method: 'drag_drop' })
+  reader.onload = async () => {
+    const ok = await applyPhoto(reader.result, false)
+    if (ok) trackEvent('photo_uploaded', { method: 'drag_drop' })
   }
   reader.readAsDataURL(file)
 })
@@ -148,11 +171,12 @@ changePhotoBtn.addEventListener('click', () => {
   input.accept = 'image/*'
   input.addEventListener('change', (e) => {
     const file = e.target.files[0]
-    if (!file || !file.type.startsWith('image/')) return
+    const err = validateImageFile(file)
+    if (err) { showUploadError(err); e.target.value = ''; return }
     const reader = new FileReader()
-    reader.onload = () => {
-      applyPhoto(reader.result, true)
-      trackEvent('photo_changed', { method: 'click' })
+    reader.onload = async () => {
+      const ok = await applyPhoto(reader.result, true)
+      if (ok) trackEvent('photo_changed', { method: 'click' })
     }
     reader.readAsDataURL(file)
   })
@@ -173,11 +197,12 @@ editorContainer.addEventListener('drop', (e) => {
   e.preventDefault()
   editorContainer.classList.remove('ring-2', 'ring-blue-400')
   const file = e.dataTransfer.files[0]
-  if (!file || !file.type.startsWith('image/')) return
+  const err = validateImageFile(file)
+  if (err) { showUploadError(err); return }
   const reader = new FileReader()
-  reader.onload = () => {
-    applyPhoto(reader.result, true)
-    trackEvent('photo_changed', { method: 'drag_drop' })
+  reader.onload = async () => {
+    const ok = await applyPhoto(reader.result, true)
+    if (ok) trackEvent('photo_changed', { method: 'drag_drop' })
   }
   reader.readAsDataURL(file)
 })
