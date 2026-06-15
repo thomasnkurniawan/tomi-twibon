@@ -356,7 +356,8 @@ downloadBtn.addEventListener('click', async () => {
     const twibbonData = await loadImage(twibbonImg.src)
     const natW = photoImg.naturalWidth
     const natH = photoImg.naturalHeight
-    const canvasSize = Math.min(natW, natH)
+    const maxDim = 2048
+    const canvasSize = Math.min(natW, natH, maxDim)
 
     const canvas = document.createElement('canvas')
     canvas.width = canvasSize
@@ -415,9 +416,17 @@ downloadBtn.addEventListener('click', async () => {
       cropCtx.drawImage(canvas, tX, tY, tW, tH, 0, 0, tW, tH)
     }
 
+    let quality = 0.92
+    let dataURL
+    for (;;) {
+      dataURL = cropCanvas.toDataURL('image/jpeg', quality)
+      const bytes = atob(dataURL.split(',')[1]).length
+      if (bytes <= 1048576 || quality <= 0.6) break
+      quality -= 0.05
+    }
     const link = document.createElement('a')
-    link.download = 'twibbonized.png'
-    link.href = cropCanvas.toDataURL('image/png')
+    link.download = 'twibbonized.jpg'
+    link.href = dataURL
     document.body.appendChild(link)
     link.click()
     link.remove()
